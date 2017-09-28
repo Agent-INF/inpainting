@@ -17,8 +17,7 @@ FLAG = tf.app.flags
 FLAGS = FLAG.FLAGS
 FLAG.DEFINE_string('dataname', 'inpaint', 'The dataset name')
 FLAG.DEFINE_string('mode', 'train', 'Chose mode from (train, validate, test)')
-FLAG.DEFINE_string('block', 'random', 'Block location, chose from (center, random), \
-only valid in validate or test mode')
+FLAG.DEFINE_string('block', 'random', 'Block location, chose from (center, random)')
 FLAG.DEFINE_float('learning_rate', 0.0002, 'Initial learning rate.')
 FLAG.DEFINE_float('lamb_rec', 0.999, 'Weight for reconstruct loss.')
 FLAG.DEFINE_float('lamb_adv', 0.001, 'Weight for adversarial loss.')
@@ -193,8 +192,12 @@ def run_model(sess):
         if image_batch.shape[0] != BATCH_SIZE:
           break
         image_batch = (image_batch.astype(np.float32) - 127.5) / 127.5
-        masked_image_batch, hidden_image_batch, masks_idx = preprocess_image(
-            image_batch, BATCH_SIZE, IMAGE_SIZE, HIDDEN_SIZE, IMAGE_CHANNEL)
+        if FLAGS.block == 'center':
+          masked_image_batch, hidden_image_batch, masks_idx = preprocess_image(
+              image_batch, BATCH_SIZE, IMAGE_SIZE, HIDDEN_SIZE, IMAGE_CHANNEL, False)
+        else:
+          masked_image_batch, hidden_image_batch, masks_idx = preprocess_image(
+              image_batch, BATCH_SIZE, IMAGE_SIZE, HIDDEN_SIZE, IMAGE_CHANNEL)
 
         if epoch % FLAGS.sample == 0 and index == 0:
           samples, rec_loss_value, adv_gene_loss_value, adv_disc_loss_value = sess.run(
